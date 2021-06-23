@@ -101,7 +101,7 @@ class _HomePageState extends State<HomePage> {
     a = DateFormat('d').format(todaylast);
     s = DateFormat('EEEE').format(day);
     month = DateFormat('MMMM').format(day);
-    print("cat1");
+    print("cat121");
     print(month);
     c = DateFormat('d').format(today);
     if (st == 0) {
@@ -384,7 +384,7 @@ class _HomePageState extends State<HomePage> {
         child: GestureDetector(
       onTap: () {
         int val = inc;
-       var mon =month.substring(0,3);
+        var mon = month.substring(0, 3);
         String _chosenValue;
         showDialog(
             context: context,
@@ -401,32 +401,30 @@ class _HomePageState extends State<HomePage> {
                           Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-
-                            Text('Event',
-                              style: TextStyle(
-                                fontSize: 25,
-                              ),
-                            ),
-
-                            Container(
-                                height: 45,
-                                width: 140,
-                                color: Color(0xFFFD5656),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12.0),
-                                  child: Text(
-                                    '$inc $mon $yea',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      color: Color(0xFFFFFFFF),
+                                Text(
+                                  'Event',
+                                  style: TextStyle(
+                                    fontSize: 25,
+                                  ),
+                                ),
+                                Container(
+                                  height: 45,
+                                  width: 140,
+                                  color: Color(0xFFFD5656),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Text(
+                                      '$inc $mon $yea',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        color: Color(0xFFFFFFFF),
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-
-                          ]),
+                              ]),
                           Divider(
                             indent: 2.0,
                             endIndent: 3.0,
@@ -440,11 +438,11 @@ class _HomePageState extends State<HomePage> {
                           Align(
                             alignment: Alignment.centerLeft,
                             child: DropdownButton<String>(
-                              focusColor:Colors.white,
+                              focusColor: Colors.white,
                               value: _chosenValue,
                               //elevation: 5,
                               style: TextStyle(color: Colors.white),
-                              iconEnabledColor:Colors.black,
+                              iconEnabledColor: Colors.black,
                               items: <String>[
                                 'Birthday',
                                 'Meeting',
@@ -463,19 +461,21 @@ class _HomePageState extends State<HomePage> {
                                 'Blog',
                                 'Health',
                                 'Sports',
-
                               ].map<DropdownMenuItem<String>>((String value) {
                                 return DropdownMenuItem<String>(
                                   value: value,
-                                  child: Text(value,style:TextStyle(color:Colors.black),),
+                                  child: Text(
+                                    value,
+                                    style: TextStyle(color: Colors.black),
+                                  ),
                                 );
                               }).toList(),
-                              hint:Text(
+                              hint: Text(
                                 "Category",
                                 style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 18,
-                                    ),
+                                  color: Colors.black,
+                                  fontSize: 18,
+                                ),
                               ),
                               onChanged: (String value) {
                                 set(() {
