@@ -380,11 +380,15 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
+    void toggleswitch() {}
+
     return Expanded(
         child: GestureDetector(
       onTap: () {
         int val = inc;
+        bool isSwitched = false;
         var mon = month.substring(0, 3);
+        print('hmm');
         String _chosenValue;
         showDialog(
             context: context,
@@ -394,7 +398,7 @@ class _HomePageState extends State<HomePage> {
                   return AlertDialog(
                     content: Container(
                       width: double.maxFinite,
-                      height: 200,
+                      height: 250,
                       child: Column(
                         //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -435,6 +439,7 @@ class _HomePageState extends State<HomePage> {
                                 border: OutlineInputBorder(),
                                 hintText: 'Title'),
                           ),
+                          SizedBox(height: 10),
                           Align(
                             alignment: Alignment.centerLeft,
                             child: DropdownButton<String>(
@@ -451,7 +456,6 @@ class _HomePageState extends State<HomePage> {
                                 'Funeral',
                                 'Marriage',
                                 'Bills',
-                                'Love ♥',
                                 'School & college event',
                                 'Exam',
                                 'Trip',
@@ -481,6 +485,34 @@ class _HomePageState extends State<HomePage> {
                               },
                             ),
                           ),
+                          SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  'Remind Me',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ),
+                              Switch(
+                                value: isSwitched,
+                                onChanged: (value) {
+                                  set(() {
+                                    isSwitched = value;
+                                    print(isSwitched);
+                                  });
+                                },
+                                activeColor: Colors.blue,
+                                activeTrackColor: Colors.yellow,
+                                inactiveThumbColor: Colors.redAccent,
+                                inactiveTrackColor: Colors.orange,
+                              )
+                            ],
+                          )
                         ],
                       ),
                     ),
