@@ -2,14 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:flutter_custom_dialog/flutter_custom_dialog.dart';
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'routes.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
-void main() => runApp(MyApp());
+void main() async {
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -30,6 +31,29 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  FlutterLocalNotificationsPlugin fltrNotification;
+  @override
+  void initState() {
+    super.initState();
+    var androidInitilize = new AndroidInitializationSettings('calendar');
+    var iOSinitilize = new IOSInitializationSettings();
+    var initilizationsSettings =
+        InitializationSettings(android: androidInitilize, iOS: iOSinitilize);
+    fltrNotification = new FlutterLocalNotificationsPlugin();
+    fltrNotification.initialize(initilizationsSettings,
+        onSelectNotification: notificationSelected);
+  }
+
+  Future notifica() async {
+    var andr = AndroidNotificationDetails("andi", "Baba", "channelDescription",
+        importance: Importance.max);
+    var ios = IOSNotificationDetails();
+    var genb = NotificationDetails(android: andr, iOS: ios);
+    await fltrNotification.show(0, "Ahaha", "Hmm Bro i got it", genb);
+  }
+
+  Future notificationSelected(String payload) async {}
+
   int num = 0;
   var colour = 0xFF4E4E4E;
   var textcolour = 0xFF908A8A;
@@ -380,12 +404,11 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
-    void toggleswitch() {}
-
     return Expanded(
         child: GestureDetector(
       onTap: () {
         int val = inc;
+        int id = 1;
         bool isSwitched = false;
         var mon = month.substring(0, 3);
         print('hmm');
@@ -503,7 +526,7 @@ class _HomePageState extends State<HomePage> {
                                 onChanged: (value) {
                                   set(() {
                                     isSwitched = value;
-                                    print(isSwitched);
+                                    notifica();
                                   });
                                 },
                                 activeColor: Colors.blue,
@@ -558,6 +581,10 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     ));
+  }
+
+  void alram() {
+    print('Alarm Fired at ${DateTime.now()}');
   }
 
   @override
