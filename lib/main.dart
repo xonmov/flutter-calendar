@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'routes.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   runApp(MyApp());
@@ -31,10 +32,14 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  GlobalKey<ScaffoldState> scaf = GlobalKey<ScaffoldState>();
+  var durationn;
+  var alrm;
   FlutterLocalNotificationsPlugin fltrNotification;
   @override
   void initState() {
     super.initState();
+
     var androidInitilize = new AndroidInitializationSettings('calendar');
     var iOSinitilize = new IOSInitializationSettings();
     var initilizationsSettings =
@@ -49,7 +54,9 @@ class _HomePageState extends State<HomePage> {
         importance: Importance.max);
     var ios = IOSNotificationDetails();
     var genb = NotificationDetails(android: andr, iOS: ios);
-    await fltrNotification.show(0, "Ahaha", "Hmm Bro i got it", genb);
+    // await fltrNotification.show(0, "Ahaha", "Hmm Bro i got it", genb);
+    var dat = DateTime.now().add(Duration(seconds: alrm.abs()));
+    fltrNotification.schedule(0, "sce", "kill kill", dat, genb);
   }
 
   Future notificationSelected(String payload) async {}
@@ -58,6 +65,7 @@ class _HomePageState extends State<HomePage> {
   var colour = 0xFF4E4E4E;
   var textcolour = 0xFF908A8A;
   bool hit = true;
+  var desckey = 'decri';
   var month;
   var yea;
   var drag = 0;
@@ -67,6 +75,7 @@ class _HomePageState extends State<HomePage> {
   bool set = false;
   var counter = 0;
   var s;
+  var distext;
   var st = 0;
   var d;
   var index1 = 0;
@@ -110,7 +119,15 @@ class _HomePageState extends State<HomePage> {
     'November',
     'December'
   ];
+  void listi() {
+    for (int i = 0; i < 60; i++) {
+      min.add("$i");
+    }
+  }
+
   List<int> year = List<int>();
+  List<String> min = List<String>();
+  List<String> desc = List<String>();
 
   var get = 0;
   var lastmonth = 0;
@@ -407,21 +424,30 @@ class _HomePageState extends State<HomePage> {
     return Expanded(
         child: GestureDetector(
       onTap: () {
+        TextEditingController emailController = new TextEditingController();
+        min.clear();
+        listi();
         int val = inc;
         int id = 1;
         bool isSwitched = false;
         var mon = month.substring(0, 3);
         print('hmm');
         String _chosenValue;
+        String _chosenValue1;
+        String _chosenValue2;
+        String _chosenValue3;
+        var col = 0x61000000;
+        var act = true;
         showDialog(
             context: context,
             builder: (BuildContext context) {
               return StatefulBuilder(
                 builder: (context, set) {
                   return AlertDialog(
-                    content: Container(
+                    content: AnimatedContainer(
+                      duration: Duration(milliseconds: 300),
                       width: double.maxFinite,
-                      height: 250,
+                      height: 350,
                       child: Column(
                         //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -457,85 +483,302 @@ class _HomePageState extends State<HomePage> {
                             endIndent: 3.0,
                             color: Colors.black,
                           ),
-                          TextField(
-                            decoration: InputDecoration(
-                                border: OutlineInputBorder(),
-                                hintText: 'Title'),
-                          ),
-                          SizedBox(height: 10),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: DropdownButton<String>(
-                              focusColor: Colors.white,
-                              value: _chosenValue,
-                              //elevation: 5,
-                              style: TextStyle(color: Colors.white),
-                              iconEnabledColor: Colors.black,
-                              items: <String>[
-                                'Birthday',
-                                'Meeting',
-                                'Holiday',
-                                'Transport',
-                                'Funeral',
-                                'Marriage',
-                                'Bills',
-                                'School & college event',
-                                'Exam',
-                                'Trip',
-                                'Blog',
-                                'Health',
-                                'Sports',
-                              ].map<DropdownMenuItem<String>>((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(
-                                    value,
-                                    style: TextStyle(color: Colors.black),
-                                  ),
-                                );
-                              }).toList(),
-                              hint: Text(
-                                "Category",
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 18,
+                          Expanded(
+                            child: ListView(
+                              scrollDirection: Axis.vertical,
+                              children: [
+                                TextField(
+                                  controller: emailController,
+                                  decoration: InputDecoration(
+                                      border: OutlineInputBorder(),
+                                      hintText: 'Title'),
                                 ),
-                              ),
-                              onChanged: (String value) {
-                                set(() {
-                                  _chosenValue = value;
-                                });
-                              },
+                                SizedBox(height: 10),
+                                TextField(
+                                  maxLines: null,
+                                  keyboardType: TextInputType.multiline,
+                                  decoration: InputDecoration(
+                                      border: OutlineInputBorder(),
+                                      hintText: 'Description'),
+                                ),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: DropdownButton<String>(
+                                    focusColor: Colors.white,
+                                    value: _chosenValue,
+                                    //elevation: 5,
+                                    style: TextStyle(color: Colors.white),
+                                    iconEnabledColor: Colors.black,
+                                    items: <String>[
+                                      'Birthday',
+                                      'Meeting',
+                                      'Holiday',
+                                      'Transport',
+                                      'Funeral',
+                                      'Marriage',
+                                      'Bills',
+                                      'School & college event',
+                                      'Exam',
+                                      'Trip',
+                                      'Blog',
+                                      'Health',
+                                      'Sports',
+                                      'Memories',
+                                    ].map<DropdownMenuItem<String>>(
+                                        (String value) {
+                                      return DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(
+                                          value,
+                                          style: TextStyle(color: Colors.black),
+                                        ),
+                                      );
+                                    }).toList(),
+                                    hint: Text(
+                                      "Category",
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                    onChanged: (String value) {
+                                      set(() {
+                                        _chosenValue = value;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        'Remind Me',
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 18,
+                                        ),
+                                      ),
+                                    ),
+                                    Switch(
+                                      value: isSwitched,
+                                      onChanged: (value) {
+                                        set(() {
+                                          displ();
+
+                                          var moninnu = months.indexWhere(
+                                              (note) => note == month);
+                                          moninnu++;
+                                          durationn = DateTime.now().difference(
+                                              DateTime.parse(
+                                                  "2021-07-15 22:00:00"));
+                                          // print("$yea $month");
+                                          // print(moninnu);
+                                          // print(durationn.inDays);
+                                          // print(durationn.inMinutes);
+                                          alrm = durationn.inSeconds; // 15
+                                          // print(alrm.abs());
+                                          // 0
+                                          isSwitched = value;
+                                          isSwitched == true
+                                              ? col = 0xFF000000
+                                              : col = 0x61000000;
+                                          isSwitched == true
+                                              ? act = false
+                                              : act = true;
+                                          notifica();
+                                        });
+                                      },
+                                      activeColor: Colors.redAccent,
+                                      activeTrackColor: Colors.orange,
+                                      inactiveThumbColor: Color(0xFF616161),
+                                      inactiveTrackColor: Colors.grey,
+                                    )
+                                  ],
+                                ),
+                                AbsorbPointer(
+                                  absorbing: act,
+                                  child: Row(
+                                    children: [
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: DropdownButton<String>(
+                                          focusColor: Colors.white,
+                                          value: _chosenValue1,
+                                          //elevation: 5,
+                                          style: TextStyle(color: Colors.white),
+                                          iconEnabledColor: Color(col),
+                                          items: <String>[
+                                            '1',
+                                            '2',
+                                            '3',
+                                            '4',
+                                            '5',
+                                            '6',
+                                            '7',
+                                            '8',
+                                            '9',
+                                            '10',
+                                            '11',
+                                            '12',
+                                          ].map<DropdownMenuItem<String>>(
+                                              (String value) {
+                                            return DropdownMenuItem<String>(
+                                              value: value,
+                                              child: Text(
+                                                value,
+                                                style: TextStyle(
+                                                    color: Color(col),
+                                                    fontSize: 19),
+                                              ),
+                                            );
+                                          }).toList(),
+                                          hint: Text(
+                                            "Hr",
+                                            style: TextStyle(
+                                              color: Color(col),
+                                              fontSize: 20,
+                                            ),
+                                          ),
+                                          onChanged: (String value) {
+                                            set(() {
+                                              _chosenValue1 = value;
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 10,
+                                      ),
+                                      DropdownButton<String>(
+                                        focusColor: Colors.white,
+                                        value: _chosenValue2,
+                                        //elevation: 5,
+                                        style: TextStyle(color: Colors.white),
+                                        iconEnabledColor: Color(col),
+                                        items: min
+                                            .map<DropdownMenuItem<String>>(
+                                                (String value) {
+                                          return DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(
+                                              value,
+                                              style: TextStyle(
+                                                  color: Color(col),
+                                                  fontSize: 19),
+                                            ),
+                                          );
+                                        }).toList(),
+                                        hint: Text(
+                                          "Min",
+                                          style: TextStyle(
+                                            color: Color(col),
+                                            fontSize: 20,
+                                          ),
+                                        ),
+                                        onChanged: (String value) {
+                                          set(() {
+                                            // min.clear();
+                                            _chosenValue2 = value;
+                                            // min.clear();
+                                          });
+                                        },
+                                      ),
+                                      SizedBox(
+                                        width: 10,
+                                      ),
+                                      DropdownButton<String>(
+                                        focusColor: Colors.white,
+                                        value: _chosenValue3,
+                                        //elevation: 5,
+                                        style: TextStyle(color: Colors.white),
+                                        iconEnabledColor: Color(col),
+                                        items: <String>[
+                                          'PM',
+                                          'AM',
+                                        ].map<DropdownMenuItem<String>>(
+                                            (String value) {
+                                          return DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(
+                                              value,
+                                              style: TextStyle(
+                                                  color: Color(col),
+                                                  fontSize: 19),
+                                            ),
+                                          );
+                                        }).toList(),
+                                        hint: Text(
+                                          "PM",
+                                          style: TextStyle(
+                                            color: Color(col),
+                                            fontSize: 20,
+                                          ),
+                                        ),
+                                        onChanged: (String value) {
+                                          set(() {
+                                            // min.clear();
+                                            _chosenValue3 = value;
+                                            // min.clear();
+                                          });
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              ],
                             ),
                           ),
-                          SizedBox(height: 10),
+                          Divider(
+                            indent: 2.0,
+                            endIndent: 3.0,
+                            color: Colors.black,
+                          ),
                           Row(
                             children: [
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  'Remind Me',
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 18,
+                              Expanded(
+                                child: FlatButton(
+                                  color: Color(0xFFFD5656),
+                                  child: Text(
+                                    'Reset',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
                                   ),
+                                  onPressed: () {
+                                    setState(() {
+                                      Navigator.of(context, rootNavigator: true)
+                                          .pop();
+                                    });
+                                  },
                                 ),
                               ),
-                              Switch(
-                                value: isSwitched,
-                                onChanged: (value) {
-                                  set(() {
-                                    isSwitched = value;
-                                    notifica();
-                                  });
-                                },
-                                activeColor: Colors.blue,
-                                activeTrackColor: Colors.yellow,
-                                inactiveThumbColor: Colors.redAccent,
-                                inactiveTrackColor: Colors.orange,
-                              )
+                              SizedBox(
+                                width: 3.0,
+                              ),
+                              Expanded(
+                                child: FlatButton(
+                                  color: Color(0xFFFD5656),
+                                  child: Text(
+                                    'Save',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  onPressed: () async {
+                                    SharedPreferences sh =
+                                        await SharedPreferences.getInstance();
+                                    desc.add(emailController.text);
+
+                                    sh.setStringList(desckey, desc);
+
+                                    Navigator.of(context, rootNavigator: true)
+                                        .pop();
+                                  },
+                                ),
+                              ),
                             ],
-                          )
+                          ),
                         ],
                       ),
                     ),
@@ -583,6 +826,17 @@ class _HomePageState extends State<HomePage> {
     ));
   }
 
+  displ() async {
+    SharedPreferences sh = await SharedPreferences.getInstance();
+    desc = sh.getStringList(desckey);
+    var desnum = desc.length;
+    setState(() {
+      for (int i = 0; i <= 0; i++) {
+        distext = desc[i];
+      }
+    });
+  }
+
   void alram() {
     print('Alarm Fired at ${DateTime.now()}');
   }
@@ -601,18 +855,90 @@ class _HomePageState extends State<HomePage> {
     int selectedIindex;
 
     return Scaffold(
+      key: scaf,
+      drawer: SafeArea(
+        child: Drawer(
+          child: Column(
+            children: [
+              ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: 1,
+                  itemBuilder: (BuildContext context, inde) {
+                    return ListTile(
+                      onTap: () {},
+                      title: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Text(distext)),
+                      tileColor: selectedIndex == inde ? Colors.blue : null,
+                    );
+                  }),
+            ],
+          ),
+        ),
+      ),
+      endDrawer: Drawer(),
       backgroundColor: Color(0xFF504242),
       body: SafeArea(
         child: Column(
           children: [
-            Divider(
-              color: Colors.white,
+            GestureDetector(
+              onTap: () {
+                scaf.currentState.openDrawer();
+                scaf.currentState.openEndDrawer();
+              },
+              child: Divider(
+                color: Colors.white,
+              ),
             ),
-            Divider(
-              color: Colors.white,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 15),
+                  child: GestureDetector(
+                    onTap: () {
+                      scaf.currentState.openDrawer();
+                    },
+                    child: Icon(
+                      FontAwesomeIcons.folder,
+                      size: 30,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Divider(
+                    color: Colors.white,
+                    indent: 30,
+                    endIndent: 30,
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.center,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 15.0),
+                    child: GestureDetector(
+                      onTap: () {
+                        scaf.currentState.openEndDrawer();
+                      },
+                      child: Icon(
+                        FontAwesomeIcons.ellipsisV,
+                        size: 30,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            Divider(
-              color: Colors.white,
+
+            GestureDetector(
+              onTap: () {
+                scaf.currentState.openDrawer();
+              },
+              child: Divider(
+                color: Colors.white,
+              ),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
