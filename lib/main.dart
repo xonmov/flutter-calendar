@@ -2,12 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app/displ.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'routes.dart';
+import 'kol.dart';
+import 'map.dart';
+import 'package:provider/provider.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 
 void main() async {
   runApp(MyApp());
@@ -34,11 +38,17 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   GlobalKey<ScaffoldState> scaf = GlobalKey<ScaffoldState>();
   var durationn;
-  var alrm;
+  var alrm = 15;
+  var outind;
+  TextEditingController search;
+  TextEditingController des;
+  // TextEditingController search = TextEditingController();
+  // TextEditingController des = TextEditingController();
   FlutterLocalNotificationsPlugin fltrNotification;
   @override
   void initState() {
     super.initState();
+    show();
 
     var androidInitilize = new AndroidInitializationSettings('calendar');
     var iOSinitilize = new IOSInitializationSettings();
@@ -62,8 +72,18 @@ class _HomePageState extends State<HomePage> {
   Future notificationSelected(String payload) async {}
 
   int num = 0;
+  String hrr;
+  var up = 'Update';
+  double opacity = 1.0;
+  bool edi = false;
+  var wid = 70.0;
+  bool act1 = true;
+  String minn;
+  String perr;
+
   var colour = 0xFF4E4E4E;
   var textcolour = 0xFF908A8A;
+  List<Data> gh = List<Data>();
   bool hit = true;
   var desckey = 'decri';
   var month;
@@ -88,6 +108,7 @@ class _HomePageState extends State<HomePage> {
   var thismon;
   bool manage = true;
   bool manage1 = false;
+  bool checkcolor = false;
   void action() {
     if (set) {
       cat1();
@@ -119,15 +140,37 @@ class _HomePageState extends State<HomePage> {
     'November',
     'December'
   ];
+  List<String> conver24 = [
+    '0',
+    '13',
+    '14',
+    '15',
+    '16',
+    '17',
+    '18',
+    '19',
+    '20',
+    '21',
+    '22',
+    '23',
+    '00',
+  ];
   void listi() {
     for (int i = 0; i < 60; i++) {
-      min.add("$i");
+      String u = '$i';
+      if (u.length <= 1) {
+        min.add("0$i");
+      } else {
+        min.add("$i");
+      }
     }
   }
 
   List<int> year = List<int>();
   List<String> min = List<String>();
   List<String> desc = List<String>();
+  List<String> longdesc = List<String>();
+  List<String> convert24 = List<String>();
 
   var get = 0;
   var lastmonth = 0;
@@ -135,6 +178,7 @@ class _HomePageState extends State<HomePage> {
   int thislastmonth = 0;
   void cat() {
     var dat = DateTime.now();
+
     DateTime day = DateTime(dat.year, dat.month - temp, 1);
     DateTime pdaylast = DateTime(dat.year, dat.month - temp, 0);
     DateTime todaylast = DateTime(dat.year, dat.month - temp + 1, 0);
@@ -142,8 +186,7 @@ class _HomePageState extends State<HomePage> {
     a = DateFormat('d').format(todaylast);
     s = DateFormat('EEEE').format(day);
     month = DateFormat('MMMM').format(day);
-    print("cat121");
-    print(month);
+
     c = DateFormat('d').format(today);
     if (st == 0) {
       thisyr = DateFormat('y').format(day);
@@ -157,6 +200,7 @@ class _HomePageState extends State<HomePage> {
     monthstartday = index;
     var one = int.parse(d);
     cur = int.parse(c);
+
     var two = int.parse(a);
     lastmonth = one;
     thislastmonth = two;
@@ -171,12 +215,12 @@ class _HomePageState extends State<HomePage> {
     );
     DateTime pdaylast = DateTime(dat.year, dat.month + temp, 0);
     DateTime todaylast = DateTime(dat.year, dat.month + temp + 1, 0);
+
     DateTime today = DateTime(dat.year, dat.month, dat.day);
     c = DateFormat('d').format(today);
     s = DateFormat('EEEE').format(d1);
     month = DateFormat('MMMM').format(d1);
-    print("cat2");
-    print(month);
+
     d = DateFormat('d').format(pdaylast);
     a = DateFormat('d').format(todaylast);
     yea = DateFormat('y').format(d1);
@@ -268,28 +312,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void them() {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return StatefulBuilder(
-            builder: (context, set) {
-              return AlertDialog(
-                content: Container(
-                  width: double.maxFinite,
-                  child: Column(
-                    //mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(children: []),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        });
-  }
-
   void current() {
     var two = int.parse(yea);
     var twoo = int.parse(thisyr);
@@ -363,14 +385,27 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  TextEditingController emailController = new TextEditingController();
+  TextEditingController longdes = new TextEditingController();
+  String _chosenValue;
+  var da;
+  bool isSwitched = false;
+  String _chosenValue3;
+  String time;
+  String _chosenValue1;
+  String _chosenValue2;
+  String _chosenValue13;
+
   Expanded makebox(inc) {
     inc++;
     num++;
 
     //color
+
     if (counter == 1) {
       colour = 0xFFFFFFFF;
       textcolour = 0xFF000000;
+
       if (num == cur && para == 0) {
         colour = 0xFFFD5656;
         textcolour = 0xFFFFFFFF;
@@ -378,10 +413,12 @@ class _HomePageState extends State<HomePage> {
       manage = false;
       manage1 = true;
     }
+
     if (counter == 2) {
       textcolour = 0xFF908A8A;
       colour = 0xFF4E4E4E;
     }
+
     if (monthstartday != 0) {
       if (manage) {
         if (num == lastmonth) {
@@ -391,18 +428,32 @@ class _HomePageState extends State<HomePage> {
     } else if (manage) {
       colour = 0xFFFFFFFF;
       textcolour = 0xFF000000; //only 1
+
+      checkcolor = true;
       manage1 = true;
       manage = false;
     }
+    if (checkcolor) {
+      if (num == cur && para == 0) {
+        colour = 0xFFFD5656;
+        textcolour = 0xFFFFFFFF;
+      } else {
+        colour = 0xFFFFFFFF;
+        textcolour = 0xFF000000;
+      }
+    }
     if (manage1) {
       if (num == thislastmonth) {
+        checkcolor = false;
         if (monthstartday != 0) {
           counter++;
+          print('yess');
         } else {
           counter = 2;
         }
       }
     }
+
 //color
 
     if (monthstartday != 0) {
@@ -424,20 +475,20 @@ class _HomePageState extends State<HomePage> {
     return Expanded(
         child: GestureDetector(
       onTap: () {
-        TextEditingController emailController = new TextEditingController();
         min.clear();
         listi();
         int val = inc;
         int id = 1;
-        bool isSwitched = false;
+        da = val;
+
         var mon = month.substring(0, 3);
         print('hmm');
-        String _chosenValue;
-        String _chosenValue1;
-        String _chosenValue2;
-        String _chosenValue3;
+        isSwitched = false;
         var col = 0x61000000;
         var act = true;
+        emailController.text = '';
+        longdes.text = '';
+        // _chosenValue = 'Category';
         showDialog(
             context: context,
             builder: (BuildContext context) {
@@ -496,6 +547,7 @@ class _HomePageState extends State<HomePage> {
                                 SizedBox(height: 10),
                                 TextField(
                                   maxLines: null,
+                                  controller: longdes,
                                   keyboardType: TextInputType.multiline,
                                   decoration: InputDecoration(
                                       border: OutlineInputBorder(),
@@ -504,10 +556,14 @@ class _HomePageState extends State<HomePage> {
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: DropdownButton<String>(
+                                    isExpanded: true,
                                     focusColor: Colors.white,
                                     value: _chosenValue,
+
                                     //elevation: 5,
-                                    style: TextStyle(color: Colors.white),
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
                                     iconEnabledColor: Colors.black,
                                     items: <String>[
                                       'Birthday',
@@ -528,9 +584,14 @@ class _HomePageState extends State<HomePage> {
                                         (String value) {
                                       return DropdownMenuItem<String>(
                                         value: value,
-                                        child: Text(
-                                          value,
-                                          style: TextStyle(color: Colors.black),
+                                        child: Center(
+                                          child: Text(
+                                            value,
+                                            style: TextStyle(
+                                              color: Colors.black,
+                                              fontSize: 19,
+                                            ),
+                                          ),
                                         ),
                                       );
                                     }).toList(),
@@ -538,7 +599,7 @@ class _HomePageState extends State<HomePage> {
                                       "Category",
                                       style: TextStyle(
                                         color: Colors.black,
-                                        fontSize: 18,
+                                        fontSize: 20,
                                       ),
                                     ),
                                     onChanged: (String value) {
@@ -564,20 +625,17 @@ class _HomePageState extends State<HomePage> {
                                       value: isSwitched,
                                       onChanged: (value) {
                                         set(() {
-                                          displ();
-
+                                          //  displ();
                                           var moninnu = months.indexWhere(
                                               (note) => note == month);
                                           moninnu++;
-                                          durationn = DateTime.now().difference(
-                                              DateTime.parse(
-                                                  "2021-07-15 22:00:00"));
+
                                           // print("$yea $month");
                                           // print(moninnu);
                                           // print(durationn.inDays);
                                           // print(durationn.inMinutes);
-                                          alrm = durationn.inSeconds; // 15
-                                          // print(alrm.abs());
+                                          //    alrm = durationn.inSeconds; // 15
+                                          //    print(alrm.abs());
                                           // 0
                                           isSwitched = value;
                                           isSwitched == true
@@ -586,14 +644,59 @@ class _HomePageState extends State<HomePage> {
                                           isSwitched == true
                                               ? act = false
                                               : act = true;
-                                          notifica();
+                                          // notifica();
                                         });
                                       },
                                       activeColor: Colors.redAccent,
                                       activeTrackColor: Colors.orange,
                                       inactiveThumbColor: Color(0xFF616161),
                                       inactiveTrackColor: Colors.grey,
-                                    )
+                                    ),
+                                    Expanded(
+                                      child: AbsorbPointer(
+                                        absorbing: act,
+                                        child: DropdownButton<String>(
+                                          focusColor: Colors.white,
+                                          isExpanded: true,
+                                          value: _chosenValue13,
+                                          //elevation: 5,
+                                          style: TextStyle(color: Colors.white),
+                                          iconEnabledColor: Color(col),
+                                          items: <String>[
+                                            '10 min',
+                                            '20 min',
+                                            '30 min',
+                                            '40 min',
+                                            '50 min',
+                                            '1 hr',
+                                            '2 hr',
+                                          ].map<DropdownMenuItem<String>>(
+                                              (String value) {
+                                            return DropdownMenuItem<String>(
+                                              value: value,
+                                              child: Text(
+                                                value,
+                                                style: TextStyle(
+                                                    color: Color(col),
+                                                    fontSize: 19),
+                                              ),
+                                            );
+                                          }).toList(),
+                                          hint: Text(
+                                            "Notify Before",
+                                            style: TextStyle(
+                                              color: Color(col),
+                                              fontSize: 20,
+                                            ),
+                                          ),
+                                          onChanged: (String value) {
+                                            set(() {
+                                              _chosenValue13 = value;
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                                 AbsorbPointer(
@@ -609,15 +712,15 @@ class _HomePageState extends State<HomePage> {
                                           style: TextStyle(color: Colors.white),
                                           iconEnabledColor: Color(col),
                                           items: <String>[
-                                            '1',
-                                            '2',
-                                            '3',
-                                            '4',
-                                            '5',
-                                            '6',
-                                            '7',
-                                            '8',
-                                            '9',
+                                            '01',
+                                            '02',
+                                            '03',
+                                            '04',
+                                            '05',
+                                            '06',
+                                            '07',
+                                            '08',
+                                            '09',
                                             '10',
                                             '11',
                                             '12',
@@ -709,7 +812,7 @@ class _HomePageState extends State<HomePage> {
                                           );
                                         }).toList(),
                                         hint: Text(
-                                          "PM",
+                                          "Period",
                                           style: TextStyle(
                                             color: Color(col),
                                             fontSize: 20,
@@ -719,6 +822,7 @@ class _HomePageState extends State<HomePage> {
                                           set(() {
                                             // min.clear();
                                             _chosenValue3 = value;
+
                                             // min.clear();
                                           });
                                         },
@@ -747,6 +851,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   onPressed: () {
                                     setState(() {
+                                      show();
                                       Navigator.of(context, rootNavigator: true)
                                           .pop();
                                     });
@@ -766,14 +871,44 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   ),
                                   onPressed: () async {
-                                    SharedPreferences sh =
-                                        await SharedPreferences.getInstance();
-                                    desc.add(emailController.text);
+                                    if (isSwitched) {
+                                      time = "$_chosenValue1$_chosenValue2";
+                                      var moninnu = months
+                                          .indexWhere((note) => note == month);
+                                      moninnu++;
+                                      String h = _chosenValue1;
+                                      String u = '$moninnu';
+                                      String v = '$val';
+                                      if (u.length <= 1) {
+                                        u = "0$moninnu";
+                                      }
+                                      if (v.length <= 1) {
+                                        v = "0$val";
+                                      }
+                                      if (_chosenValue3 == "PM") {
+                                        int con = int.parse(_chosenValue1);
+                                        h = conver24[con];
+                                      }
+                                      if (_chosenValue1 != null &&
+                                          _chosenValue2 != null &&
+                                          _chosenValue3 != null) {
+                                        durationn = DateTime.now().difference(
+                                            DateTime.parse(
+                                                "$yea-$u-$v $h:$_chosenValue2:00"));
 
-                                    sh.setStringList(desckey, desc);
+                                        alrm = durationn.inSeconds; // 15
+                                        print(alrm.abs());
 
-                                    Navigator.of(context, rootNavigator: true)
-                                        .pop();
+                                        insertdata();
+                                        Navigator.of(context,
+                                                rootNavigator: true)
+                                            .pop();
+                                      } else {
+                                        print('pls');
+                                      }
+                                    } else {
+                                      insertdata();
+                                    }
                                   },
                                 ),
                               ),
@@ -804,6 +939,7 @@ class _HomePageState extends State<HomePage> {
             }
             para++;
             temp = para;
+
             temp = para.abs();
           });
         }
@@ -826,19 +962,433 @@ class _HomePageState extends State<HomePage> {
     ));
   }
 
-  displ() async {
-    SharedPreferences sh = await SharedPreferences.getInstance();
-    desc = sh.getStringList(desckey);
-    var desnum = desc.length;
-    setState(() {
-      for (int i = 0; i <= 0; i++) {
-        distext = desc[i];
-      }
+
+
+//database
+  var pac = 'ok';
+  void insertdata() async {
+    final dbhelper = Databasehelper.instance;
+    var mon = month.substring(0, 3);
+    var dat = "$da $mon $yea";
+    var title = emailController.text;
+    var desd = longdes.text;
+    var no = DateTime.now();
+    if (emailController.text == '' ||
+        longdes.text == '' ||
+        _chosenValue == null) {
+      print('soory');
+      print(emailController.text);
+      print(longdes.text);
+      print(_chosenValue);
+    } else {
+      Map<String, dynamic> row = {
+        Databasehelper.columntitle: "$title",
+        Databasehelper.columndesc: "$desd",
+        Databasehelper.columcat: "$_chosenValue",
+        Databasehelper.columtime: "$time",
+        Databasehelper.columdate: "$dat",
+        Databasehelper.columam: "$_chosenValue3",
+        Databasehelper.columbef: "$_chosenValue13",
+        Databasehelper.columnow: "$no",
+      };
+      final id = await dbhelper.insert(row);
+      print(id);
+    }
+  }
+
+  void show() async {
+    gh = List<Data>();
+    final dbhelper = Databasehelper.instance;
+    var row = await dbhelper.queryallu();
+    print(row);
+    row.forEach((element) {
+      var cate = Data();
+
+      cate.tit = element['title'];
+      cate.des = element['desc'];
+      cate.catg = element['catg'];
+      cate.time = element['tim'];
+      //print(cate.time);
+      cate.dat = element['Date'];
+      cate.am = element['ampm'];
+      cate.bef = element['bef'];
+
+      gh.add(cate);
     });
   }
 
-  void alram() {
+  alram() {
     print('Alarm Fired at ${DateTime.now()}');
+  }
+
+  @override
+  void dispose() {
+    search.dispose();
+    super.dispose();
+  }
+
+  Widget _buildPlayerModelList(int k) {
+    return Card(
+      child: ExpansionTile(
+        trailing: Container(
+          height: 45,
+          width: 135,
+          color: Color(0xFFFD5656),
+          child: Padding(
+            padding: const EdgeInsets.all(11.0),
+            child: Text(
+              gh[k].dat,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 20,
+                color: Color(0xFFFFFFFF),
+              ),
+            ),
+          ),
+        ),
+        title: Text(
+          gh[k].tit,
+          style: TextStyle(fontSize: 19.0, fontWeight: FontWeight.w500),
+        ),
+        subtitle: Text(gh[k].dat),
+        children: <Widget>[
+          Row(
+            children: [
+              Divider(
+                color: Colors.black,
+              ),
+              Expanded(
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    focusColor: Colors.white,
+                    isExpanded: true,
+                    icon: Visibility(
+                        visible: false, child: Icon(Icons.arrow_downward)),
+                    value: gh[k].catg,
+                    //elevation: 5,
+                    style: TextStyle(color: Colors.white),
+                    iconEnabledColor: Colors.black,
+                    items: <String>[
+                      'Birthday',
+                      'Meeting',
+                      'Holiday',
+                      'Transport',
+                      'Funeral',
+                      'Marriage',
+                      'Bills',
+                      'School & college event',
+                      'Exam',
+                      'Trip',
+                      'Blog',
+                      'Health',
+                      'Sports',
+                      'Memories',
+                    ].map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Center(
+                          child: Text(
+                            value,
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 19,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    hint: Text(
+                      "Category",
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 20,
+                      ),
+                    ),
+                    onChanged: (String value) {
+                      setState(() {
+                        // _chosenValue = value;
+                      });
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 3.0),
+            child: TextField(
+              // onChanged: alram(),
+              controller: search,
+              decoration: InputDecoration(
+                  border: InputBorder.none,
+                  disabledBorder: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  enabled: edi,
+                  hintText: 'Title',
+                  hintStyle: TextStyle(
+                    color: Colors.black,
+                  )),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 3.0),
+            child: TextField(
+              controller: des,
+              decoration: InputDecoration(
+                  border: InputBorder.none,
+                  disabledBorder: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  enabled: edi,
+                  hintText: 'Title',
+                  hintStyle: TextStyle(
+                    color: Colors.black,
+                  )),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 3.0),
+            child: AbsorbPointer(
+              absorbing: act1,
+              child: Row(
+                children: [
+                  Icon(
+                    FontAwesomeIcons.bell,
+                    size: 20,
+                    color: Colors.black,
+                  ),
+                  SizedBox(
+                    width: 7,
+                  ),
+                  Align(
+                    // alignment: Alignment.centerLeft,
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        focusColor: Colors.white,
+                        value: hrr,
+                        icon: Visibility(
+                            visible: false, child: Icon(Icons.arrow_downward)),
+                        //elevation: 5,
+                        style: TextStyle(color: Colors.white),
+                        //  iconEnabledColor: Color(col),
+                        items: <String>[
+                          '01',
+                          '02',
+                          '03',
+                          '04',
+                          '05',
+                          '06',
+                          '07',
+                          '08',
+                          '09',
+                          '10',
+                          '11',
+                          '12',
+                        ].map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(
+                              value,
+                              style:
+                                  TextStyle(color: Colors.black, fontSize: 19),
+                            ),
+                          );
+                        }).toList(),
+                        hint: Text(
+                          "Hr",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 20,
+                          ),
+                        ),
+                        onChanged: (String value) {
+                          setState(() {
+                            hrr = value;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  Text(' : '),
+                  DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      focusColor: Colors.white,
+                      value: minn,
+                      icon: Visibility(
+                          visible: false, child: Icon(Icons.arrow_downward)),
+                      //elevation: 5,
+                      style: TextStyle(color: Colors.white),
+                      // iconEnabledColor: Color(col),
+                      items: min.map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value,
+                              style:
+                                  TextStyle(fontSize: 19, color: Colors.black)),
+                        );
+                      }).toList(),
+                      hint: Text(
+                        "Min",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 20,
+                        ),
+                      ),
+                      onChanged: (String value) {
+                        setState(() {
+                          // min.clear();
+                          //  _chosenValue2 = value;
+                          // min.clear();
+                        });
+                      },
+                    ),
+                  ),
+                  DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      focusColor: Colors.white,
+                      value: perr,
+                      icon: Visibility(
+                          visible: false, child: Icon(Icons.arrow_downward)),
+                      //elevation: 5,
+                      style: TextStyle(color: Colors.white),
+
+                      items: <String>[
+                        'PM',
+                        'AM',
+                      ].map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(
+                            value,
+                            style: TextStyle(fontSize: 19, color: Colors.black),
+                          ),
+                        );
+                      }).toList(),
+                      hint: Text(
+                        "Prd",
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Colors.black,
+                        ),
+                      ),
+                      onChanged: (String value) {
+                        setState(() {
+                          // min.clear();
+                          //   _chosenValue3 = value;
+
+                          // min.clear();
+                        });
+                      },
+                    ),
+                  ),
+                  SizedBox(
+                    width: 30,
+                  ),
+                  Icon(
+                    Icons.restore_rounded,
+                    size: 22,
+                    color: Colors.black,
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  Expanded(
+                    child: DropdownButton<String>(
+                      focusColor: Colors.white,
+                      isExpanded: true,
+                      value: _chosenValue13,
+                      icon: Visibility(
+                          visible: false, child: Icon(Icons.arrow_downward)),
+                      //elevation: 5,
+                      style: TextStyle(color: Colors.white),
+                      // iconEnabledColor: Color(col),
+                      items: <String>[
+                        '10 min',
+                        '20 min',
+                        '30 min',
+                        '40 min',
+                        '50 min',
+                        '1 hr',
+                        '2 hr',
+                      ].map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(
+                            value,
+                            style: TextStyle(color: Colors.black, fontSize: 19),
+                          ),
+                        );
+                      }).toList(),
+                      hint: Text(
+                        "Notify Before",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 20,
+                        ),
+                      ),
+                      onChanged: (String value) {
+                        setState(() {
+                          //   _chosenValue13 = value;
+                        });
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      up = 'Updating...';
+                      act1 = false;
+                      edi = true;
+                      wid = 100.0;
+                      opacity = opacity == 1.0 ? 0.0 : 1.0;
+                    });
+                  },
+                  child: AnimatedContainer(
+                      child: Center(
+                          child: AnimatedOpacity(
+                        opacity: opacity,
+                        duration: Duration(seconds: 1),
+                        child: Text(up,
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 17)),
+                      )),
+                      duration: Duration(milliseconds: 300),
+                      width: wid,
+                      height: 35,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                        color: Color(0xFFFD5656),
+                      )),
+                ),
+                SizedBox(
+                  width: 20,
+                ),
+                AnimatedContainer(
+                    child: Center(
+                        child: Text('Delete',
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 17))),
+                    duration: Duration(milliseconds: 300),
+                    width: wid,
+                    height: 35,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(20)),
+                      color: Color(0xFFFD5656),
+                    )),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -860,15 +1410,57 @@ class _HomePageState extends State<HomePage> {
         child: Drawer(
           child: Column(
             children: [
+              Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(13, 13, 0, 0),
+                    child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Records',
+                          style: TextStyle(
+                            fontSize: 27,
+                          ),
+                        )),
+                  ),
+                  SizedBox(
+                    width: 90,
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 13, 13, 0),
+                      child: FlatButton(
+                        color: Color(0xFFFD5656),
+                        child: Text(
+                          'Filter',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                          ),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            Navigator.of(context, rootNavigator: true).pop();
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Divider(
+                color: Colors.black,
+              ),
+              Text(pac),
               ListView.builder(
                   shrinkWrap: true,
-                  itemCount: 1,
+                  itemCount: desc.length,
                   itemBuilder: (BuildContext context, inde) {
                     return ListTile(
                       onTap: () {},
                       title: Padding(
                           padding: const EdgeInsets.all(12.0),
-                          child: Text(distext)),
+                          child: Text(desc[inde])),
                       tileColor: selectedIndex == inde ? Colors.blue : null,
                     );
                   }),
@@ -876,7 +1468,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-      endDrawer: Drawer(),
       backgroundColor: Color(0xFF504242),
       body: SafeArea(
         child: Column(
@@ -919,7 +1510,8 @@ class _HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.only(right: 15.0),
                     child: GestureDetector(
                       onTap: () {
-                        scaf.currentState.openEndDrawer();
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (context) => Page3()));
                       },
                       child: Icon(
                         FontAwesomeIcons.ellipsisV,
