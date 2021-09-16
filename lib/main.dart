@@ -1,13 +1,19 @@
 import 'dart:async';
 
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_app/displ.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'fedit.dart';
 import 'routes.dart';
 import 'kol.dart';
+import 'noti.dart';
 import 'map.dart';
 import 'package:provider/provider.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -15,9 +21,11 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 void main() async {
   runApp(MyApp());
+
 }
 
 class MyApp extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -36,10 +44,24 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final fb = FirebaseDatabase.instance;
+  final name = "Name";
+  var _labelText = 'Title';
+  var desen=0;
+  FocusNode focusNode1;
+  FocusNode focusNode2;
+  var desenad='Add';
+  var desen1=0;
+  var desenad1='Add';
+  var desen2=0;
+  var desenad2='Add';
   GlobalKey<ScaffoldState> scaf = GlobalKey<ScaffoldState>();
   var durationn;
   var alrm = 15;
+  String alrmbef;
   var outind;
+  var descdate;
+  var _labelText1 = 'Description';
   TextEditingController search;
   TextEditingController des;
   // TextEditingController search = TextEditingController();
@@ -48,7 +70,9 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    show();
+    focusNode1 = FocusNode();
+    focusNode2 = FocusNode();
+    getnotiupda();
 
     var androidInitilize = new AndroidInitializationSettings('calendar');
     var iOSinitilize = new IOSInitializationSettings();
@@ -59,14 +83,70 @@ class _HomePageState extends State<HomePage> {
         onSelectNotification: notificationSelected);
   }
 
-  Future notifica() async {
+  Future notifica(id,tit,cat) async {
     var andr = AndroidNotificationDetails("andi", "Baba", "channelDescription",
         importance: Importance.max);
     var ios = IOSNotificationDetails();
     var genb = NotificationDetails(android: andr, iOS: ios);
     // await fltrNotification.show(0, "Ahaha", "Hmm Bro i got it", genb);
     var dat = DateTime.now().add(Duration(seconds: alrm.abs()));
-    fltrNotification.schedule(0, "sce", "kill kill", dat, genb);
+
+    fltrNotification.schedule(id, tit, cat, dat, genb);
+  }
+  void getnotiupda() async{
+    final dbhelper = Databasehelper.instance;
+    var row =await dbhelper.queryspecificnoti();
+      gh.clear();
+      row.forEach((element) {
+      var cate = Data();
+      cate.time = element['tim'];
+      cate.bef = element['bef'];
+      cate.num = element['now'];
+      cate.descda=element['descdat'];
+      cate.am=element['ampm'];
+      gh.add(cate);
+      });
+
+    for(int i=0;i<gh.length;i++){
+      if(gh[i].time!='null'){
+        var dat=gh[i].descda;
+        var hrrr = gh[i].time;
+        hrrr = hrrr.substring(0, 2);
+        // print(hrr);
+        var minnn = gh[i].time;
+        minnn = minnn.substring(2, 4);
+        var perrr = gh[i].am;
+        if (perrr == "PM") {
+          int con = int.parse(hrrr);
+          hrrr = conver24[con];
+        }
+        var months=dat.toString();
+        var yea=months.substring(0,4);
+        var yead=months.substring(5,7);
+        var yead1=months.substring(8,10);
+        var durationn = DateTime.parse("$yea-$yead-$yead1 $hrrr:$minnn:00").difference(DateTime.now());
+        var alrmm = durationn.inSeconds;
+        if(alrmm<0){
+          dbhelper.updatenoti(gh[i].num);
+        }
+
+      if(gh[i].bef!='null') {
+        var aStr = gh[i].bef.replaceAll(new RegExp(r'[^0-9]'), '');
+        var fd = int.parse(aStr);
+        if (fd == 1 || fd == 2) {
+          var bef = 60 * 60 * fd;
+          if (alrmm < bef) {
+            dbhelper.updatenotionly(gh[i].num);
+          }
+        } else {
+          var bef = fd * 60;
+          if (alrmm < bef) {
+            dbhelper.updatenotionly(gh[i].num);
+          }
+        }
+      }
+      }
+    }
   }
 
   Future notificationSelected(String payload) async {}
@@ -126,6 +206,8 @@ class _HomePageState extends State<HomePage> {
     'Friday',
     'Saturday'
   ];
+  bool _validate =false;
+  bool _validate1 =false;
   List<String> months = [
     'January',
     'February',
@@ -246,6 +328,7 @@ class _HomePageState extends State<HomePage> {
       y++;
     }
   }
+
 
   void changey() {
     var two = int.parse(yea);
@@ -490,15 +573,17 @@ class _HomePageState extends State<HomePage> {
         longdes.text = '';
         // _chosenValue = 'Category';
         showDialog(
+
             context: context,
             builder: (BuildContext context) {
               return StatefulBuilder(
                 builder: (context, set) {
                   return AlertDialog(
+                    insetPadding: EdgeInsets.all(10),
                     content: AnimatedContainer(
                       duration: Duration(milliseconds: 300),
                       width: double.maxFinite,
-                      height: 350,
+                      height: 400,
                       child: Column(
                         //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -506,24 +591,26 @@ class _HomePageState extends State<HomePage> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'Event',
+                                  'Notes',
                                   style: TextStyle(
                                     fontSize: 25,
                                   ),
                                 ),
                                 Container(
-                                  height: 45,
+                                  height: 48,
                                   width: 140,
                                   color: Color(0xFFFD5656),
                                   child: Padding(
                                     padding: const EdgeInsets.all(12.0),
-                                    child: Text(
-                                      '$inc $mon $yea',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        color: Color(0xFFFFFFFF),
+                                    child: Center(
+                                      child: Text(
+                                        '$inc $mon $yea',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          color: Color(0xFFFFFFFF),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -538,298 +625,516 @@ class _HomePageState extends State<HomePage> {
                             child: ListView(
                               scrollDirection: Axis.vertical,
                               children: [
-                                TextField(
-                                  controller: emailController,
-                                  decoration: InputDecoration(
-                                      border: OutlineInputBorder(),
-                                      hintText: 'Title'),
+                                Padding(
+                                  padding: const EdgeInsets.only(top:5.0),
+                                  child: TextField(
+                                    autocorrect: true,
+                                    focusNode: focusNode1,
+                                    autofocus: false,
+                                    onChanged: (text) {
+                                      set(() {
+                                        _validate=false;
+                                      });
+
+                                    },
+                                    style: TextStyle(
+                                      fontSize: 25,
+                                    ),
+                                    textInputAction: TextInputAction.done,
+                                    onSubmitted: (term){
+                                      FocusScope.of(context).unfocus();
+                                    },
+                                    controller: emailController,
+                                    //    textInputAction: TextInputAction.done,
+                                    //    textAlign: TextAlign.start,
+                                    decoration: InputDecoration(
+                                      errorText: _validate ? 'Value Can\'t Be Empty' : null,
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(10),
+
+                                      ),
+
+                                      labelText: _labelText,
+                                      labelStyle: TextStyle(
+                                        fontSize: 15,
+                                      ),
+
+
+                                      //  hintStyle: TextStyle(fontSize: 20.0, color: Color(_labelText1)),
+                                    ),
+                                  ),
                                 ),
                                 SizedBox(height: 10),
-                                TextField(
-                                  maxLines: null,
-                                  controller: longdes,
-                                  keyboardType: TextInputType.multiline,
-                                  decoration: InputDecoration(
-                                      border: OutlineInputBorder(),
-                                      hintText: 'Description'),
-                                ),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: DropdownButton<String>(
-                                    isExpanded: true,
-                                    focusColor: Colors.white,
-                                    value: _chosenValue,
-
-                                    //elevation: 5,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                    ),
-                                    iconEnabledColor: Colors.black,
-                                    items: <String>[
-                                      'Birthday',
-                                      'Meeting',
-                                      'Holiday',
-                                      'Transport',
-                                      'Funeral',
-                                      'Marriage',
-                                      'Bills',
-                                      'School & college event',
-                                      'Exam',
-                                      'Trip',
-                                      'Blog',
-                                      'Health',
-                                      'Sports',
-                                      'Memories',
-                                    ].map<DropdownMenuItem<String>>(
-                                        (String value) {
-                                      return DropdownMenuItem<String>(
-                                        value: value,
-                                        child: Center(
-                                          child: Text(
-                                            value,
-                                            style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 19,
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    }).toList(),
-                                    hint: Text(
-                                      "Category",
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 20,
-                                      ),
-                                    ),
-                                    onChanged: (String value) {
-                                      set(() {
-                                        _chosenValue = value;
-                                      });
-                                    },
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                        'Remind Me',
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 18,
-                                        ),
-                                      ),
-                                    ),
-                                    Switch(
-                                      value: isSwitched,
-                                      onChanged: (value) {
+                                Container(
+                                  height:45,
+                                  child: Card(
+                                    color: Colors.redAccent,
+                                    shadowColor:Colors.redAccent,
+                                    child: GestureDetector(
+                                      onTap: (){
                                         set(() {
-                                          //  displ();
-                                          var moninnu = months.indexWhere(
-                                              (note) => note == month);
-                                          moninnu++;
+                                          if(desen==0){
+                                            desen=1;
+                                            desenad='Remove';
+                                          }else{
+                                            desen=0;
+                                            desenad='Add';
+                                          }
 
-                                          // print("$yea $month");
-                                          // print(moninnu);
-                                          // print(durationn.inDays);
-                                          // print(durationn.inMinutes);
-                                          //    alrm = durationn.inSeconds; // 15
-                                          //    print(alrm.abs());
-                                          // 0
-                                          isSwitched = value;
-                                          isSwitched == true
-                                              ? col = 0xFF000000
-                                              : col = 0x61000000;
-                                          isSwitched == true
-                                              ? act = false
-                                              : act = true;
-                                          // notifica();
                                         });
-                                      },
-                                      activeColor: Colors.redAccent,
-                                      activeTrackColor: Colors.orange,
-                                      inactiveThumbColor: Color(0xFF616161),
-                                      inactiveTrackColor: Colors.grey,
-                                    ),
-                                    Expanded(
-                                      child: AbsorbPointer(
-                                        absorbing: act,
-                                        child: DropdownButton<String>(
-                                          focusColor: Colors.white,
-                                          isExpanded: true,
-                                          value: _chosenValue13,
-                                          //elevation: 5,
-                                          style: TextStyle(color: Colors.white),
-                                          iconEnabledColor: Color(col),
-                                          items: <String>[
-                                            '10 min',
-                                            '20 min',
-                                            '30 min',
-                                            '40 min',
-                                            '50 min',
-                                            '1 hr',
-                                            '2 hr',
-                                          ].map<DropdownMenuItem<String>>(
-                                              (String value) {
-                                            return DropdownMenuItem<String>(
-                                              value: value,
-                                              child: Text(
-                                                value,
-                                                style: TextStyle(
-                                                    color: Color(col),
-                                                    fontSize: 19),
-                                              ),
-                                            );
-                                          }).toList(),
-                                          hint: Text(
-                                            "Notify Before",
-                                            style: TextStyle(
-                                              color: Color(col),
-                                              fontSize: 20,
-                                            ),
-                                          ),
-                                          onChanged: (String value) {
-                                            set(() {
-                                              _chosenValue13 = value;
-                                            });
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                AbsorbPointer(
-                                  absorbing: act,
-                                  child: Row(
-                                    children: [
-                                      Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: DropdownButton<String>(
-                                          focusColor: Colors.white,
-                                          value: _chosenValue1,
-                                          //elevation: 5,
-                                          style: TextStyle(color: Colors.white),
-                                          iconEnabledColor: Color(col),
-                                          items: <String>[
-                                            '01',
-                                            '02',
-                                            '03',
-                                            '04',
-                                            '05',
-                                            '06',
-                                            '07',
-                                            '08',
-                                            '09',
-                                            '10',
-                                            '11',
-                                            '12',
-                                          ].map<DropdownMenuItem<String>>(
-                                              (String value) {
-                                            return DropdownMenuItem<String>(
-                                              value: value,
-                                              child: Text(
-                                                value,
-                                                style: TextStyle(
-                                                    color: Color(col),
-                                                    fontSize: 19),
-                                              ),
-                                            );
-                                          }).toList(),
-                                          hint: Text(
-                                            "Hr",
-                                            style: TextStyle(
-                                              color: Color(col),
-                                              fontSize: 20,
-                                            ),
-                                          ),
-                                          onChanged: (String value) {
-                                            set(() {
-                                              _chosenValue1 = value;
-                                            });
-                                          },
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: 10,
-                                      ),
-                                      DropdownButton<String>(
-                                        focusColor: Colors.white,
-                                        value: _chosenValue2,
-                                        //elevation: 5,
-                                        style: TextStyle(color: Colors.white),
-                                        iconEnabledColor: Color(col),
-                                        items: min
-                                            .map<DropdownMenuItem<String>>(
-                                                (String value) {
-                                          return DropdownMenuItem<String>(
-                                            value: value,
-                                            child: Text(
-                                              value,
-                                              style: TextStyle(
-                                                  color: Color(col),
-                                                  fontSize: 19),
-                                            ),
-                                          );
-                                        }).toList(),
-                                        hint: Text(
-                                          "Min",
-                                          style: TextStyle(
-                                            color: Color(col),
-                                            fontSize: 20,
-                                          ),
-                                        ),
-                                        onChanged: (String value) {
-                                          set(() {
-                                            // min.clear();
-                                            _chosenValue2 = value;
-                                            // min.clear();
-                                          });
-                                        },
-                                      ),
-                                      SizedBox(
-                                        width: 10,
-                                      ),
-                                      DropdownButton<String>(
-                                        focusColor: Colors.white,
-                                        value: _chosenValue3,
-                                        //elevation: 5,
-                                        style: TextStyle(color: Colors.white),
-                                        iconEnabledColor: Color(col),
-                                        items: <String>[
-                                          'PM',
-                                          'AM',
-                                        ].map<DropdownMenuItem<String>>(
-                                            (String value) {
-                                          return DropdownMenuItem<String>(
-                                            value: value,
-                                            child: Text(
-                                              value,
-                                              style: TextStyle(
-                                                  color: Color(col),
-                                                  fontSize: 19),
-                                            ),
-                                          );
-                                        }).toList(),
-                                        hint: Text(
-                                          "Period",
-                                          style: TextStyle(
-                                            color: Color(col),
-                                            fontSize: 20,
-                                          ),
-                                        ),
-                                        onChanged: (String value) {
-                                          set(() {
-                                            // min.clear();
-                                            _chosenValue3 = value;
 
-                                            // min.clear();
+                                      },
+                                      child:   Row(
+
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(left:10),
+                                            child: Text('$desenad Description',
+                                                style:TextStyle(
+                                                  color:Colors.white,
+                                                  fontSize:18,
+                                                )),
+                                          ),
+                                          Expanded(child: SizedBox(width: 150)),
+                                          Padding(
+                                            padding: const EdgeInsets.only(right:10),
+                                            child: Icon(
+                                              desen==0 ? FontAwesomeIcons.plusCircle : FontAwesomeIcons.minusCircle,
+                                              size: 24,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 10),
+                                ListView.builder(
+                                  itemCount: desen,
+                                  shrinkWrap: true,
+                                  itemBuilder: (context, index) {
+                                    return TextField(
+                                      maxLines: null,
+                                      textInputAction: TextInputAction.done,
+                                      focusNode: focusNode2,
+                                      onChanged: (text) {
+                                        set(() {
+                                          _validate1=false;
+                                        });
+
+                                      },
+                                      onSubmitted: (term){
+                                        FocusScope.of(context).unfocus();
+                                      },
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                      ),
+                                      controller: longdes,
+                                      keyboardType: TextInputType.multiline,
+                                      decoration: InputDecoration(
+                                        errorText: _validate1 ? 'Value Can\'t Be Empty' : null,
+
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10),
+
+                                        ),
+
+                                        labelText: _labelText1,
+                                        labelStyle: TextStyle(
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+
+                                Container(
+                                  height:45,
+                                  child: Card(
+                                    shadowColor:Colors.redAccent,
+                                    color: Colors.redAccent,
+                                    child: GestureDetector(
+                                      onTap: (){
+                                        set(() {
+                                          if(desen1==0){
+                                            desen1=1;
+                                            desenad1='Remove';
+                                          }else{
+                                            desen1=0;
+                                            desenad1='Add';
+                                          }
+
+                                        });
+
+                                      },
+                                      child:   Row(
+
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(left:10),
+                                            child: Text('$desenad1 Category',
+                                                style:TextStyle(
+                                                  fontSize:18,
+                                                  color:Colors.white,
+                                                )),
+                                          ),
+                                          Expanded(child: SizedBox(width: 150)),
+                                          Padding(
+                                            padding: const EdgeInsets.only(right:10),
+                                            child: Icon(
+                                              desen1==0 ? FontAwesomeIcons.plusCircle : FontAwesomeIcons.minusCircle,
+                                              size: 24,
+                                              color:Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 10),
+                                ListView.builder(
+                                  itemCount: desen1,
+                                  shrinkWrap: true,
+                                  itemBuilder: (context, index) {
+                                    return Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: DropdownButton<String>(
+                                        isExpanded: true,
+                                        focusColor: Colors.white,
+                                        value: _chosenValue,
+                                        onTap: (){
+                                          FocusScope.of(context).unfocus();
+                                        },
+                                        //elevation: 5,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                        iconEnabledColor: Colors.black,
+                                        items: <String>[
+                                          'Birthday',
+                                          'Meeting',
+                                          'Holiday',
+                                          'Transport',
+                                          'Funeral',
+                                          'Marriage',
+                                          'Bills',
+                                          'School & college event',
+                                          'Exam',
+                                          'Trip',
+                                          'Blog',
+                                          'Health',
+                                          'Sports',
+                                          'Memories',
+                                          'None',
+                                        ].map<DropdownMenuItem<String>>(
+                                                (String value) {
+                                              return DropdownMenuItem<String>(
+                                                value: value,
+                                                child: Center(
+                                                  child: Text(
+                                                    value,
+                                                    style: TextStyle(
+                                                      color: Colors.black,
+                                                      fontSize: 19,
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            }).toList(),
+                                        hint: Text(
+                                          "Category",
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 20,
+                                          ),
+                                        ),
+                                        onChanged: (String value) {
+                                          set(() {
+                                            _chosenValue = value;
                                           });
                                         },
                                       ),
-                                    ],
+                                    );
+                                  },
+                                ),
+
+                                Container(
+                                  height:45,
+                                  child: Card(
+                                    color: Colors.redAccent,
+                                    shadowColor:Colors.redAccent,
+                                    child: GestureDetector(
+                                      onTap: (){
+                                        set(() {
+                                          if(desen2==0){
+                                            desen2=1;
+                                            desenad2='Remove';
+
+
+                                            isSwitched = true;
+                                            isSwitched == true
+                                                ? col = 0xFF000000
+                                                : col = 0x61000000;
+                                            isSwitched == true
+                                                ? act = false
+                                                : act = true;
+                                          }else{
+                                            isSwitched = false;
+                                            isSwitched == true
+                                                ? col = 0xFF000000
+                                                : col = 0x61000000;
+                                            isSwitched == true
+                                                ? act = false
+                                                : act = true;
+
+
+                                            desen2=0;
+                                            desenad2='Add';
+                                          }
+
+                                        });
+
+                                      },
+                                      child:   Row(
+
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(left:10),
+                                            child: Text('$desenad2 Reminder',
+                                                style:TextStyle(
+                                                  fontSize:18,
+                                                  color:Colors.white,
+                                                )),
+                                          ),
+                                          Expanded(child: SizedBox(width: 150)),
+                                          Padding(
+                                            padding: const EdgeInsets.only(right:10),
+                                            child: Icon(
+                                              desen2==0 ? FontAwesomeIcons.plusCircle : FontAwesomeIcons.minusCircle,
+                                              size: 24,
+                                              color:Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
-                                )
+                                ),
+                                ListView.builder(
+                                  itemCount: desen2,
+                                  shrinkWrap: true,
+                                  itemBuilder: (context, index) {
+                                    return Column(
+                                      children: [
+                                        AbsorbPointer(
+                                          absorbing: act,
+                                          child: Row(
+                                            children: [
+                                              Align(
+                                                alignment: Alignment.centerLeft,
+                                                child: DropdownButton<String>(
+                                                  focusColor: Colors.white,
+                                                  value: _chosenValue1,
+                                                  onTap: (){
+                                                    FocusScope.of(context).unfocus();
+                                                  },
+                                                  //elevation: 5,
+                                                  style: TextStyle(color: Colors.white),
+                                                  iconEnabledColor: Color(col),
+                                                  items: <String>[
+                                                    '01',
+                                                    '02',
+                                                    '03',
+                                                    '04',
+                                                    '05',
+                                                    '06',
+                                                    '07',
+                                                    '08',
+                                                    '09',
+                                                    '10',
+                                                    '11',
+                                                    '12',
+                                                  ].map<DropdownMenuItem<String>>(
+                                                          (String value) {
+                                                        return DropdownMenuItem<String>(
+                                                          value: value,
+                                                          child: Text(
+                                                            value,
+                                                            style: TextStyle(
+                                                                color: Color(col),
+                                                                fontSize: 17),
+                                                          ),
+                                                        );
+                                                      }).toList(),
+                                                  hint: Text(
+                                                    "Hour",
+                                                    style: TextStyle(
+                                                      color: Color(col),
+                                                      fontSize: 18,
+                                                    ),
+                                                  ),
+                                                  onChanged: (String value) {
+                                                 //   FocusScope.of(context).unfocus();
+                                                    set(() {
+
+
+                                                      _chosenValue1 = value;
+                                                      setState(() {
+                                                        FocusScope.of(context).unfocus();
+                                                      });
+                                                    });
+                                                  },
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                width: 10,
+                                              ),
+                                              DropdownButton<String>(
+                                                focusColor: Colors.white,
+                                                value: _chosenValue2,
+                                                onTap: (){
+                                                  FocusScope.of(context).unfocus();
+                                                },
+                                                //elevation: 5,
+                                                style: TextStyle(color: Colors.white),
+                                                iconEnabledColor: Color(col),
+                                                items: min
+                                                    .map<DropdownMenuItem<String>>(
+                                                        (String value) {
+                                                      return DropdownMenuItem<String>(
+                                                        value: value,
+                                                        child: Text(
+                                                          value,
+                                                          style: TextStyle(
+                                                              color: Color(col),
+                                                              fontSize: 17),
+                                                        ),
+                                                      );
+                                                    }).toList(),
+                                                hint: Text(
+                                                  "Minute",
+                                                  style: TextStyle(
+                                                    color: Color(col),
+                                                    fontSize: 18,
+                                                  ),
+                                                ),
+                                                onChanged: (String value) {
+                                                  set(() {
+                                                    // min.clear();
+                                                    FocusScope.of(context).unfocus();
+                                                    _chosenValue2 = value;
+                                                    // min.clear();
+                                                  });
+                                                },
+                                              ),
+                                              SizedBox(
+                                                width: 10,
+                                              ),
+                                              DropdownButton<String>(
+                                                focusColor: Colors.white,
+                                                value: _chosenValue3,
+                                                onTap: (){
+                                                  FocusScope.of(context).unfocus();
+                                                },
+                                                //elevation: 5,
+                                                style: TextStyle(color: Colors.white),
+                                                iconEnabledColor: Color(col),
+                                                items: <String>[
+                                                  'PM',
+                                                  'AM',
+                                                ].map<DropdownMenuItem<String>>(
+                                                        (String value) {
+                                                      return DropdownMenuItem<String>(
+                                                        value: value,
+                                                        child: Text(
+                                                          value,
+                                                          style: TextStyle(
+                                                              color: Color(col),
+                                                              fontSize: 17),
+                                                        ),
+                                                      );
+                                                    }).toList(),
+                                                hint: Text(
+                                                  "Period",
+                                                  style: TextStyle(
+                                                    color: Color(col),
+                                                    fontSize: 18,
+                                                  ),
+                                                ),
+                                                onChanged: (String value) {
+                                                  set(() {
+                                                    FocusScope.of(context).unfocus();
+                                                    // min.clear();
+                                                    _chosenValue3 = value;
+
+                                                    // min.clear();
+                                                  });
+                                                },
+                                              ),
+
+                                            ],
+                                          ),
+                                        ),
+
+                                         DropdownButton<String>(
+                                            focusColor: Colors.white,
+                                            isExpanded: true,
+                                            value: _chosenValue13,
+                                            //elevation: 5,
+                                            style: TextStyle(color: Colors.white),
+                                            iconEnabledColor: Color(col),
+                                           onTap: (){
+                                             FocusScope.of(context).unfocus();
+                                           },
+                                            items: <String>[
+                                              '10 min',
+                                              '20 min',
+                                              '30 min',
+                                              '40 min',
+                                              '50 min',
+                                              '1 hr',
+                                              '2 hr',
+                                            ].map<DropdownMenuItem<String>>(
+                                                    (String value) {
+                                                  return DropdownMenuItem<String>(
+                                                    value: value,
+                                                    child: Text(
+                                                      value,
+                                                      style: TextStyle(
+                                                          color: Color(col),
+                                                          fontSize: 19),
+                                                    ),
+                                                  );
+                                                }).toList(),
+                                            hint: Text(
+                                              "Alert Before",
+                                              style: TextStyle(
+                                                color: Color(col),
+                                                fontSize: 20,
+                                              ),
+                                            ),
+                                            onChanged: (String value) {
+                                              set(() {
+                                                FocusScope.of(context).unfocus();
+                                                _chosenValue13 = value;
+                                              });
+                                            },
+                                          ),
+
+                                      ],
+                                    );
+                                  },
+                                ),
+
+
+
+
+
+
+
+
                               ],
                             ),
                           ),
@@ -851,9 +1156,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   onPressed: () {
                                     setState(() {
-                                      show();
-                                      Navigator.of(context, rootNavigator: true)
-                                          .pop();
+                                      FocusScope.of(context).unfocus();
                                     });
                                   },
                                 ),
@@ -871,6 +1174,13 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   ),
                                   onPressed: () async {
+ if(desen1==1 &&  _chosenValue==null){
+   _chosenValue ='None';
+ }else{
+   _chosenValue ='None';
+ }
+                                    String uu;
+                                    String vv;
                                     if (isSwitched) {
                                       time = "$_chosenValue1$_chosenValue2";
                                       var moninnu = months
@@ -892,22 +1202,157 @@ class _HomePageState extends State<HomePage> {
                                       if (_chosenValue1 != null &&
                                           _chosenValue2 != null &&
                                           _chosenValue3 != null) {
-                                        durationn = DateTime.now().difference(
-                                            DateTime.parse(
-                                                "$yea-$u-$v $h:$_chosenValue2:00"));
-
+                                        var durationn = DateTime.parse("$yea-$u-$v $h:$_chosenValue2:00").difference(DateTime.now());
+                                        descdate= '$yea-$u-$v';
                                         alrm = durationn.inSeconds; // 15
-                                        print(alrm.abs());
 
-                                        insertdata();
-                                        Navigator.of(context,
-                                                rootNavigator: true)
-                                            .pop();
+
+                                        if(alrm<0){
+                                          Fluttertoast.showToast(
+                                            msg: "Time is Passed",
+                                            backgroundColor:Color(0xFFFD5656),
+                                            fontSize: 18,
+                                            toastLength: Toast.LENGTH_SHORT,
+                                            gravity: ToastGravity.BOTTOM,
+                                            timeInSecForIosWeb: 1,
+                                          );
+                                        }else{
+                  if(_chosenValue13!=null){
+                  var aStr = _chosenValue13.replaceAll(new RegExp(r'[^0-9]'),'');
+                  var fd=int.parse(aStr);
+                  if (fd == 1 || fd==2) {
+                    var bef = 60 * 60 * fd;
+                    alrm = alrm.abs();
+                    if(alrm<bef) {
+                      Fluttertoast.showToast(
+                        msg: "Notify Time is Passed",
+                        backgroundColor:Color(0xFFFD5656),
+                        fontSize: 18,
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                        timeInSecForIosWeb: 1,
+                      );
+
+                    }else{
+                      if (emailController.text == '') {
+                        set(() {
+                          _validate=true;
+                          focusNode1.requestFocus();
+                        });
+
+                      }else if(longdes.text == '' && desen==1){
+                        set(() {
+                          _validate1=true;
+                          focusNode2.requestFocus();
+                        });
+                      }else{
+                        insertdata();
+                        Navigator.of(context,
+                            rootNavigator: true)
+                            .pop();
+                      }
+                    }
+                  }else{
+                    var bef=fd*60;
+                    alrm=alrm.abs();
+                    if(alrm<bef) {
+                      Fluttertoast.showToast(
+                        msg: "Notify Time is Passed",
+                        backgroundColor:Color(0xFFFD5656),
+                        fontSize: 18,
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                        timeInSecForIosWeb: 1,
+                      );
+
+                    }else{
+                      if (emailController.text == '') {
+                        set(() {
+                          _validate=true;
+                          focusNode1.requestFocus();
+                        });
+
+                      }else if(longdes.text == '' && desen==1){
+                        set(() {
+                          _validate1=true;
+                          focusNode2.requestFocus();
+                        });
+                      }else{
+                        insertdata();
+                        Navigator.of(context,
+                            rootNavigator: true)
+                            .pop();
+                      }
+                    }
+                  }
+                  }else{
+                    if (emailController.text == '') {
+                      set(() {
+                        _validate=true;
+                        focusNode1.requestFocus();
+                      });
+
+                    }else if(longdes.text == '' && desen==1){
+                      set(() {
+                        _validate1=true;
+                        focusNode2.requestFocus();
+                      });
+                    }else{
+                      insertdata();
+                      Navigator.of(context,
+                          rootNavigator: true)
+                          .pop();
+                    }
+                  }
+
+                                        }
+
+
+
+
                                       } else {
-                                        print('pls');
+                                        Fluttertoast.showToast(
+                                          msg: "Enter full time",
+                                          backgroundColor:Color(0xFFFD5656),
+                                          fontSize: 18,
+                                          toastLength: Toast.LENGTH_SHORT,
+                                          gravity: ToastGravity.BOTTOM,
+                                          timeInSecForIosWeb: 1,
+                                        );
                                       }
                                     } else {
-                                      insertdata();
+
+                  var moninnu = months
+                      .indexWhere((note) => note == month);
+                  moninnu++;
+                  String u = '$moninnu';
+                  String v = '$val';
+                  if (u.length <= 1) {
+                  u = "0$moninnu";
+                  }
+                  if (v.length <= 1) {
+                  v = "0$val";
+                  }
+                                      descdate= '$yea-$u-$v';
+                  if (emailController.text == '') {
+                    set(() {
+                      _validate=true;
+                      focusNode1.requestFocus();
+                    });
+
+                  }else if(longdes.text == '' && desen==1){
+                    set(() {
+                      _validate1=true;
+                      focusNode2.requestFocus();
+                    });
+                  }else{
+                    insertdata();
+                    Navigator.of(context,
+                        rootNavigator: true)
+                        .pop();
+                  }
+
+                                    //  insertdata();
                                     }
                                   },
                                 ),
@@ -966,21 +1411,24 @@ class _HomePageState extends State<HomePage> {
 
 //database
   var pac = 'ok';
+
   void insertdata() async {
+
     final dbhelper = Databasehelper.instance;
+    var noti=Notida();
+     alrmbef='$_chosenValue13';
     var mon = month.substring(0, 3);
     var dat = "$da $mon $yea";
     var title = emailController.text;
     var desd = longdes.text;
     var no = DateTime.now();
-    if (emailController.text == '' ||
-        longdes.text == '' ||
-        _chosenValue == null) {
-      print('soory');
-      print(emailController.text);
-      print(longdes.text);
-      print(_chosenValue);
+   // longdes.text == '';
+    if (emailController.text == '') {
+
+
+
     } else {
+      if( isSwitched) {
       Map<String, dynamic> row = {
         Databasehelper.columntitle: "$title",
         Databasehelper.columndesc: "$desd",
@@ -990,9 +1438,64 @@ class _HomePageState extends State<HomePage> {
         Databasehelper.columam: "$_chosenValue3",
         Databasehelper.columbef: "$_chosenValue13",
         Databasehelper.columnow: "$no",
+        Databasehelper.columndescdat: "$descdate",
       };
       final id = await dbhelper.insert(row);
-      print(id);
+
+
+  final id1 = await dbhelper.queryspecific1(no);
+  var id2 = id1.toString();
+  id2 = id2.substring(6, 7);
+  var id3 = int.parse(id2);
+  noti.initState();
+  noti.notificatio(id3, title, _chosenValue, alrm);
+
+  if(alrmbef!='null'){
+   var aStr = alrmbef.replaceAll(new RegExp(r'[^0-9]'),'');
+    var fd=int.parse(aStr);
+    if (fd == 1 || fd==2) {
+      var bef=60*60*fd;
+      alrm=alrm.abs();
+
+      print('$bef $alrm');
+      if(alrm>bef) {
+        bef=alrm-bef;
+        noti.initState();
+        noti.notificatio(id3 + 1, title, _chosenValue, bef);
+      }else{
+        print('Cant notify');
+      }
+    }else{
+      var bef=fd*60;
+      alrm=alrm.abs();
+      print('$bef $alrm');
+
+      if(alrm>bef) {
+        bef=alrm-bef;
+        print('came');
+        noti.initState();
+        noti.notificatio(id3 + 1, title, _chosenValue, bef);
+      }else{
+        print('Cant notify');
+      }
+    }
+  }
+}else{
+        Map<String, dynamic> row = {
+          Databasehelper.columntitle: "$title",
+          Databasehelper.columndesc: "$desd",
+          Databasehelper.columcat: "$_chosenValue",
+          Databasehelper.columtime: "null",
+          Databasehelper.columdate: "$dat",
+          Databasehelper.columam: "null",
+          Databasehelper.columbef: "null",
+          Databasehelper.columnow: "$no",
+          Databasehelper.columndescdat: "$descdate",
+        };
+        final id = await dbhelper.insert(row);
+
+
+      }
     }
   }
 
@@ -1024,6 +1527,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     search.dispose();
+    print('dis');
     super.dispose();
   }
 
@@ -1202,8 +1706,11 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         onChanged: (String value) {
+
                           setState(() {
+                            SystemChannels.textInput.invokeMethod('TextInput.hide');
                             hrr = value;
+
                           });
                         },
                       ),
@@ -1393,6 +1900,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final ref = fb.reference();
     action();
     tracker();
     hit = true;
@@ -1410,60 +1918,187 @@ class _HomePageState extends State<HomePage> {
         child: Drawer(
           child: Column(
             children: [
-              Row(
+              Stack(
+
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(13, 13, 0, 0),
-                    child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Records',
-                          style: TextStyle(
-                            fontSize: 27,
-                          ),
+
+                     Positioned(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Container(
+                            width: MediaQuery.of(context).size.width,
+                            height:98,
+                            decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey,
+                                  offset: Offset(0.0, 1.0), //(x,y)
+                                  blurRadius: 6.0,
+                                ),
+                              ],
+                                borderRadius: BorderRadius.all(Radius.circular(20)),
+                                color: Color(0xFFFD5656),
+                            ),
+
+
+                    ),
                         )),
-                  ),
-                  SizedBox(
-                    width: 90,
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 13, 13, 0),
-                      child: FlatButton(
-                        color: Color(0xFFFD5656),
-                        child: Text(
-                          'Filter',
-                          style: TextStyle(
+
+                  Positioned(
+                      child: Padding(
+                        padding:   const EdgeInsets.only(top: 13,left:20),
+                        child: Row(
+                          children: [
+
+
+                            Align(
+
+
+
+                                child: Text(
+                                  'Calendar',
+                                  style: GoogleFonts.balooTamma
+                                    (textStyle:TextStyle(
+                                    color:Colors.white,
+                                    fontSize: 27,
+                                  ),),
+
+
+
+                                ),
+
+                            ),
+                            SizedBox(
+                              width:50,
+                            ),
+                            Text('Ver:1.5.0',
+                            style:TextStyle(color: Colors.white)),
+                          ],
+                        ),
+                      )),
+                  Positioned(
+                      child: Row(
+                        children: [
+                          Align(
+                            alignment:Alignment.bottomLeft,
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 44,left:20),
+                              child: Text(
+                                'From Tcode Team',
+                                style: GoogleFonts.balooTamma
+                                  (textStyle:TextStyle(
+                                  color:Colors.white,
+                                  fontSize: 20,
+                                ),),
+
+
+
+                              ),
+                            ),
+                          ),
+
+                        ],
+                      )),
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 75,left:20),
+                        child: Icon(
+
+                            FontAwesomeIcons.link,
+                            size: 20,
                             color: Colors.white,
-                            fontSize: 20,
+
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 75,left:10),
+                        child: GestureDetector(
+    onTap: () => launch('https://www.youtube.com/channel/UCjz30Q5h5rf0Le9HuZSITOg/featured'),
+                          child: Text(
+                           'YouTube',
+                              style:TextStyle(
+                                fontSize: 20,
+                                color:Colors.white,
+                              )
+
                           ),
                         ),
-                        onPressed: () {
-                          setState(() {
-                            Navigator.of(context, rootNavigator: true).pop();
-                          });
-                        },
                       ),
-                    ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 75,left:20),
+                        child: GestureDetector(
+                          onTap: () => launch('https://www.instagram.com/naveen_x0n/'),
+                          child: Text(
+                              'Instagram',
+                              style:TextStyle(
+                                fontSize: 20,
+                                color:Colors.white,
+                              )
+
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              Divider(
-                color: Colors.black,
-              ),
-              Text(pac),
+    ListView.builder(
+      itemCount: 1,
+      shrinkWrap: true,
+      itemBuilder: (context, index) {
+        return ListTile(
+          title: Text('Customize',
+              style:TextStyle(
+                fontSize: 20,
+                color:Colors.black,
+              )),
+          onTap: (
+              ) {
+            Fluttertoast.showToast(
+              msg: "Coming Soon",
+              backgroundColor:Color(0xFFFD5656),
+              fontSize: 18,
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              timeInSecForIosWeb: 1,
+            );
+            //Go to the next screen with Navigator.push
+          },
+        );
+      },
+    ),
+
               ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: desc.length,
-                  itemBuilder: (BuildContext context, inde) {
-                    return ListTile(
-                      onTap: () {},
-                      title: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Text(desc[inde])),
-                      tileColor: selectedIndex == inde ? Colors.blue : null,
-                    );
-                  }),
+                itemCount: 1,
+                shrinkWrap: true,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text('FeedBack',
+                        style:TextStyle(
+                          fontSize: 20,
+                          color:Colors.black,
+                        ),),
+                    onTap: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => Page4()));
+                     // ref.child('samu').set('copy1');
+                      //Go to the next screen with Navigator.push
+                    },
+                  );
+                },
+              ),
+            Expanded(
+            child:SizedBox(
+              height:900,
+            ),
+            ),
+              Expanded(
+                child: Align(
+                  alignment:Alignment.bottomCenter,
+                    child: Text('This App Is Operated On A.I')),
+              ),
+
             ],
           ),
         ),

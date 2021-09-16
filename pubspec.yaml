@@ -42,7 +42,11 @@ dependencies:
   path_provider: ^2.0.1
   provider: ^5.0.0
   expansion_tile_card: ^2.0.0
-
+  google_fonts: ^2.1.0
+  firebase_core: ^1.0.3
+  firebase_database: ^6.1.2
+  connectivity: ^0.4.2
+  url_launcher: ^6.0.10
 
 dev_dependencies:
   flutter_test:

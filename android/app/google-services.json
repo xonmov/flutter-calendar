@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "139626947772",
+    "project_id": "feedbackcal-ab591",
+    "storage_bucket": "feedbackcal-ab591.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:139626947772:android:ed19e5544c3075215bdcb9",
+        "android_client_info": {
+          "package_name": "com.Xon.Calendar"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "139626947772-ttfnq6a3rfrnrqfcj6fma5428cl9527i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxvsUoMy8RHgAH3raCG1ilmOFndpQpoSo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "139626947772-ttfnq6a3rfrnrqfcj6fma5428cl9527i.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
